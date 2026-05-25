@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Richly</title>
+  <meta name="description" content="Your premium money tracker. Free forever, powerful always.">
+  <meta name="theme-color" content="#060610">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Richly">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060610;
+      --surface: #0d0d20;
+      --surface2: #13132a;
+      --border: #ffffff0c;
+      --gold: #e8b84b;
+      --gold2: #f5d080;
+      --gold-dim: #e8b84b18;
+      --income: #34d399;
+      --expense: #f87171;
+      --text: #eeeef8;
+      --text-dim: #50507a;
+      --text-mid: #8888aa;
+      --pro: #a78bfa;
+      --pro-dim: #a78bfa18;
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; }
+    #app { height: 100dvh; display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; position: relative; }
+    .screen { display: none; flex: 1; overflow-y: auto; padding-bottom: calc(86px + var(--safe-bot)); scrollbar-width: none; }
+    .screen::-webkit-scrollbar { display: none; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* HEADER */
+    .header { padding: 54px 24px 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .header-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .header-title .dot { color: var(--gold); }
+    .header-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.3px; }
+
+    /* PRO BADGE */
+    .pro-badge {
+      background: var(--pro-dim);
+      border: 1px solid #a78bfa33;
+      color: var(--pro);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .pro-badge:active { background: #a78bfa28; }
+
+    /* BALANCE CARD */
+    .balance-card {
+      margin: 4px 20px 18px;
+      background: linear-gradient(145deg, #12122a 0%, #0a0a1c 100%);
+      border: 1px solid #ffffff0f;
+      border-radius: 26px;
+      padding: 26px;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-card::before {
+      content: ''; position: absolute; top: -90px; right: -90px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, #e8b84b16 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .balance-card::after {
+      content: ''; position: absolute; bottom: -50px; left: -50px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, #34d39910 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .balance-label { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+    .balance-amount { font-family: 'Playfair Display', serif; font-size: 54px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 4px; }
+    .balance-currency { color: var(--gold); font-size: 28px; margin-right: 2px; }
+    .balance-period { font-size: 12px; color: var(--text-dim); margin-bottom: 22px; }
+    .balance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .balance-stat { background: #ffffff05; border: 1px solid #ffffff08; border-radius: 16px; padding: 14px; }
+    .balance-stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .dot-ind { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .dot-ind.income { background: var(--income); box-shadow: 0 0 7px var(--income); }
+    .dot-ind.expense { background: var(--expense); box-shadow: 0 0 7px var(--expense); }
+    .balance-stat-value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+    .balance-stat-value.income { color: var(--income); }
+    .balance-stat-value.expense { color: var(--expense); }
+
+    /* GO PRO BANNER */
+    .pro-banner {
+      margin: 0 20px 18px;
+      background: linear-gradient(135deg, #1a1040 0%, #0e0a28 100%);
+      border: 1px solid #a78bfa30;
+      border-radius: 20px;
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: all 0.2s;
+    }
+    .pro-banner::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, #a78bfa20 0%, transparent 70%);
+    }
+    .pro-banner:active { transform: scale(0.98); }
+    .pro-banner-icon { font-size: 34px; flex-shrink: 0; }
+    .pro-banner-text { flex: 1; }
+    .pro-banner-title { font-size: 15px; font-weight: 600; color: var(--pro); margin-bottom: 3px; }
+    .pro-banner-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+    .pro-banner-cta {
+      background: var(--pro); color: #0a0a20;
+      font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700;
+      padding: 8px 14px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.3px;
+    }
+
+    /* SECTION */
+    .section-header { padding: 4px 24px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-dim); }
+    .section-action { font-size: 13px; color: var(--gold); cursor: pointer; }
+
+    /* TXN */
+    .txn-list { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+    .txn-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      animation: fadeUp 0.22s ease forwards;
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .txn-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .txn-icon.income { background: #34d39914; }
+    .txn-icon.expense { background: #f8717114; }
+    .txn-info { flex: 1; min-width: 0; }
+    .txn-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .txn-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+    .txn-right { text-align: right; flex-shrink: 0; }
+    .txn-amount { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+    .txn-amount.income { color: var(--income); }
+    .txn-amount.expense { color: var(--expense); }
+    .txn-del { font-size: 15px; cursor: pointer; margin-top: 5px; display: block; opacity: 0.25; transition: opacity 0.2s; }
+    .txn-del:active { opacity: 1; }
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--text-dim); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; line-height: 1.7; }
+
+    /* NAV */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: #0a0a1acc; backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border-top: 1px solid var(--border);
+      padding: 10px 0 calc(10px + var(--safe-bot));
+      display: flex; justify-content: space-around; align-items: center; z-index: 100;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 16px; border-radius: 12px; }
+    .nav-icon { font-size: 22px; transition: transform 0.2s; }
+    .nav-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; transition: color 0.2s; }
+    .nav-item.active .nav-label { color: var(--gold); }
+    .nav-item.active .nav-icon { transform: translateY(-2px); }
+    .fab {
+      width: 56px; height: 56px; background: var(--gold);
+      border-radius: 18px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 4px 28px #e8b84b55;
+      transition: all 0.15s; margin-top: -12px; flex-shrink: 0;
+    }
+    .fab:active { transform: scale(0.9); box-shadow: 0 2px 12px #e8b84b30; }
+    .fab svg { width: 26px; height: 26px; stroke: #060610; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: #000000cc; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; align-items: flex-end; }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #10101e; border-radius: 28px 28px 0 0;
+      border-top: 1px solid #ffffff12;
+      padding: 20px 22px calc(28px + var(--safe-bot));
+      width: 100%; animation: slideUp 0.3s cubic-bezier(0.32, 1.22, 0.64, 1);
+      max-height: 92dvh; overflow-y: auto;
+    }
+    .modal::-webkit-scrollbar { display: none; }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-handle { width: 36px; height: 4px; background: #ffffff12; border-radius: 2px; margin: 0 auto 20px; }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 20px; }
+    .type-toggle { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface2); border-radius: 14px; padding: 4px; margin-bottom: 18px; }
+    .type-btn { padding: 11px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; color: var(--text-dim); }
+    .type-btn.active.income { background: #34d39918; color: var(--income); }
+    .type-btn.active.expense { background: #f8717118; color: var(--expense); }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+    .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 15px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+    .form-input:focus { border-color: var(--gold); }
+    .form-input::placeholder { color: var(--text-dim); }
+    .amount-input { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700; letter-spacing: -1px; }
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .cat-btn { background: var(--surface2); border: 1px solid transparent; border-radius: 14px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.18s; }
+    .cat-btn.selected { border-color: var(--gold); background: var(--gold-dim); }
+    .cat-emoji { font-size: 20px; margin-bottom: 4px; }
+    .cat-name { font-size: 10px; color: var(--text-dim); }
+    .cat-btn.selected .cat-name { color: var(--gold); }
+    .submit-btn { width: 100%; background: var(--gold); color: #060610; border: none; border-radius: 16px; padding: 16px; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 18px; transition: all 0.15s; letter-spacing: 0.3px; }
+    .submit-btn:active { transform: scale(0.97); }
+
+    /* HISTORY */
+    .month-filter { display: flex; gap: 8px; padding: 0 20px 16px; overflow-x: auto; scrollbar-width: none; }
+    .month-filter::-webkit-scrollbar { display: none; }
+    .month-chip { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 8px 16px; font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--text-dim); white-space: nowrap; }
+    .month-chip.active { background: var(--gold-dim); border-color: #e8b84b44; color: var(--gold); }
+
+    /* STATS */
+    .stats-card { margin: 0 20px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 20px; }
+    .stats-card-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+    .bar-chart { display: flex; flex-direction: column; gap: 14px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { font-size: 12px; color: var(--text-mid); width: 72px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { flex: 1; background: var(--surface2); border-radius: 6px; height: 7px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; min-width: 2px; }
+    .bar-fill.income { background: linear-gradient(90deg, #34d399, #6ee7b7); }
+    .bar-fill.expense { background: linear-gradient(90deg, #f87171, #fca5a5); }
+    .bar-value { font-size: 12px; color: var(--text-mid); width: 82px; text-align: right; flex-shrink: 0; }
+    .stat-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 0 20px 16px; }
+    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px 12px; text-align: center; }
+    .stat-box-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .stat-box-label { font-size: 10px; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; }
+
+    /* PRO SCREEN */
+    .pro-screen-hero {
+      margin: 4px 20px 20px;
+      background: linear-gradient(145deg, #1a1040, #0e0a2a);
+      border: 1px solid #a78bfa30;
+      border-radius: 26px; padding: 32px 24px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .pro-screen-hero::before {
+      content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, #a78bfa25 0%, transparent 70%);
+    }
+    .pro-star { font-size: 52px; margin-bottom: 14px; display: block; }
+    .pro-screen-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: var(--pro); margin-bottom: 8px; }
+    .pro-screen-sub { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+    .pro-features { display: flex; flex-direction: column; gap: 10px; text-align: left; margin-bottom: 24px; }
+    .pro-feature { display: flex; gap: 12px; align-items: flex-start; }
+    .pro-feature-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .pro-feature-text { font-size: 14px; color: var(--text-mid); line-height: 1.5; }
+    .pro-feature-text strong { color: var(--text); font-weight: 600; }
+    .sociabuzz-btn {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, var(--pro), #7c3aed);
+      color: white; border: none; border-radius: 16px;
+      padding: 17px; font-family: 'Outfit', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      text-decoration: none; text-align: center;
+      box-shadow: 0 6px 30px #a78bfa35; transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .sociabuzz-btn:active { transform: scale(0.97); opacity: 0.9; }
+    .pro-note { font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 12px; line-height: 1.6; }
+    .pro-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .pro-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .pro-divider-text { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+    .donate-btn {
+      display: block; width: 100%;
+      background: transparent; border: 1px solid #e8b84b33;
+      color: var(--gold); border-radius: 16px;
+      padding: 15px; font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      text-decoration: none; text-align: center; transition: all 0.2s;
+    }
+    .donate-btn:active { background: var(--gold-dim); }
+
+    /* SETTINGS */
+    .settings-section { padding: 0 20px 20px; }
+    .settings-item { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; transition: background 0.2s; }
+    .settings-item:active { background: var(--surface2); }
+    .settings-item-left { display: flex; align-items: center; gap: 14px; }
+    .settings-item-icon { font-size: 22px; }
+    .settings-item-label { font-size: 15px; font-weight: 500; }
+    .settings-item-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .settings-item-arrow { color: var(--text-dim); font-size: 18px; }
+    .currency-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; color: var(--gold); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; outline: none; cursor: pointer; }
+    .danger-btn { width: 100%; background: #f8717112; color: var(--expense); border: 1px solid #f8717120; border-radius: 16px; padding: 16px; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+    .danger-btn:active { background: #f8717122; }
+    .settings-footer { text-align: center; padding: 20px 24px 0; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+    .settings-footer span { color: var(--gold); font-weight: 500; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <div>
+        <div class="header-title">Richly<span class="dot">.</span></div>
+        <div class="header-sub" id="today-date"></div>
+      </div>
+      <div class="pro-badge" onclick="switchScreen('pro')">✦ Go Pro</div>
+    </div>
+    <div class="balance-card">
+      <div class="balance-label">Net Balance</div>
+      <div class="balance-amount">
+        <span class="balance-currency" id="currency-symbol">RM</span><span id="total-balance">0.00</span>
+      </div>
+      <div class="balance-period" id="balance-period">This month</div>
+      <div class="balance-row">
+        <div class="balance-stat">
+          <div class="balance-stat-label"><span class="dot-ind income"></span>Income</div>
+          <div class="balance-stat-value income" id="total-income">0.00</div>
+        </div>
+        <div class="balance-stat">
+          <div class="balance-stat-label"><span class="dot-ind expense"></span>Expenses</div>
+          <div class="balance-stat-value expense" id="total-expense">0.00</div>
+        </div>
+      </div>
+    </div>
+    <!-- PRO BANNER -->
+    <div class="pro-banner" onclick="switchScreen('pro')">
+      <div class="pro-banner-icon">💎</div>
+      <div class="pro-banner-text">
+        <div class="pro-banner-title">Unlock Richly Pro</div>
+        <div class="pro-banner-sub">Budget limits · CSV export · Premium themes</div>
+      </div>
+      <div class="pro-banner-cta">Support</div>
+    </div>
+    <div class="section-header">
+      <div class="section-title">Recent</div>
+      <div class="section-action" onclick="switchScreen('history')">View All →</div>
+    </div>
+    <div class="txn-list" id="home-txn-list"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="header">
+      <div>
+        <div class="header-title">History</div>
+        <div class="header-sub" id="history-count">0 transactions</div>
+      </div>
+    </div>
+    <div class="month-filter" id="month-filter"></div>
+    <div class="txn-list" id="history-txn-list"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="screen" id="screen-stats">
+    <div class="header">
+      <div>
+        <div class="header-title">Insights</div>
+        <div class="header-sub">Spending patterns</div>
+      </div>
+    </div>
+    <div class="stat-summary">
+      <div class="stat-box">
+        <div class="stat-box-val" id="stats-txn-count" style="color:var(--gold)">0</div>
+        <div class="stat-box-label">Total</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" id="stats-avg-expense" style="color:var(--expense)">0</div>
+        <div class="stat-box-label">Avg/day</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" id="stats-savings-rate" style="color:var(--income)">0%</div>
+        <div class="stat-box-label">Saved</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-card-title">Monthly Overview — 6 months</div>
+      <div class="bar-chart" id="monthly-chart"></div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-card-title">Top Expense Categories</div>
+      <div class="bar-chart" id="category-chart"></div>
+    </div>
+  </div>
+
+  <!-- PRO / SUPPORT -->
+  <div class="screen" id="screen-pro">
+    <div class="header">
+      <div>
+        <div class="header-title">Richly <span style="color:var(--pro)">Pro</span></div>
+        <div class="header-sub">Support the app you love</div>
+      </div>
+    </div>
+    <div style="padding: 0 20px 20px; display: flex; flex-direction: column; gap: 0;">
+      <div class="pro-screen-hero">
+        <span class="pro-star">💎</span>
+        <div class="pro-screen-title">Go Pro</div>
+        <div class="pro-screen-sub">Richly is free forever. Your support helps keep it ad-free, private, and always improving.</div>
+        <div class="pro-features">
+          <div class="pro-feature"><div class="pro-feature-icon">📊</div><div class="pro-feature-text"><strong>Budget Limits</strong> — Set monthly caps per category</div></div>
+          <div class="pro-feature"><div class="pro-feature-icon">🔁</div><div class="pro-feature-text"><strong>Recurring Entries</strong> — Auto-log salary, rent, subscriptions</div></div>
+          <div class="pro-feature"><div class="pro-feature-icon">📁</div><div class="pro-feature-text"><strong>CSV Export</strong> — Open your data in Excel or Google Sheets</div></div>
+          <div class="pro-feature"><div class="pro-feature-icon">🎨</div><div class="pro-feature-text"><strong>Premium Themes</strong> — Rose gold, midnight, forest & more</div></div>
+          <div class="pro-feature"><div class="pro-feature-icon">🔒</div><div class="pro-feature-text"><strong>PIN Lock</strong> — Keep your finances private</div></div>
+          <div class="pro-feature"><div class="pro-feature-icon">☁️</div><div class="pro-feature-text"><strong>Cloud Backup</strong> — Never lose your data again</div></div>
+        </div>
+        <!-- ✅ REPLACE YOUR_SOCIABUZZ_USERNAME below with your actual SociaBuzz username -->
+        <a class="sociabuzz-btn" href="https://sociabuzz.com/YOUR_SOCIABUZZ_USERNAME/tribe" target="_blank" rel="noopener">
+          💎 &nbsp;Support via SociaBuzz
+        </a>
+        <div class="pro-note">One-time support · Any amount · Unlocks Pro features</div>
+        <div class="pro-divider">
+          <div class="pro-divider-line"></div>
+          <div class="pro-divider-text">or</div>
+          <div class="pro-divider-line"></div>
+        </div>
+        <!-- ✅ REPLACE YOUR_SOCIABUZZ_USERNAME below too -->
+        <a class="donate-btn" href="https://sociabuzz.com/YOUR_SOCIABUZZ_USERNAME/tribe" target="_blank" rel="noopener">
+          ☕ &nbsp;Buy me a coffee instead
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MORE / SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="header">
+      <div>
+        <div class="header-title">More</div>
+        <div class="header-sub">Settings & preferences</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">💱</div>
+          <div>
+            <div class="settings-item-label">Currency</div>
+            <div class="settings-item-sub">Your display currency</div>
+          </div>
+        </div>
+        <select class="currency-select" id="currency-select" onchange="setCurrency(this.value)">
+          <option value="RM">RM</option>
+          <option value="$">USD $</option>
+          <option value="Rp">IDR Rp</option>
+          <option value="₱">PHP ₱</option>
+          <option value="S$">SGD S$</option>
+          <option value="฿">THB ฿</option>
+          <option value="¥">JPY ¥</option>
+          <option value="€">EUR €</option>
+          <option value="£">GBP £</option>
+        </select>
+      </div>
+      <div class="settings-item" onclick="exportData()">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">📤</div>
+          <div>
+            <div class="settings-item-label">Export Data</div>
+            <div class="settings-item-sub">Download as JSON</div>
+          </div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="showInstallTip()">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">📱</div>
+          <div>
+            <div class="settings-item-label">Install App</div>
+            <div class="settings-item-sub">Add to Home Screen</div>
+          </div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="switchScreen('pro')">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">💎</div>
+          <div>
+            <div class="settings-item-label" style="color:var(--pro)">Go Pro</div>
+            <div class="settings-item-sub">Support Richly via SociaBuzz</div>
+          </div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <button class="danger-btn" onclick="clearAllData()">🗑️ &nbsp;Clear All Data</button>
+      <div class="settings-footer">
+        <b style="color:var(--text)">Richly.</b> — Made with ❤️ for the SEA community<br>
+        Free · Private · No ads · Your data stays on <span>your</span> device
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchScreen('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" id="nav-history" onclick="switchScreen('history')">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">History</div>
+    </div>
+    <div class="fab" onclick="openModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchScreen('stats')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Insights</div>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="switchScreen('settings')">
+      <div class="nav-icon">⚙️</div>
+      <div class="nav-label">More</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Entry</div>
+    <div class="type-toggle">
+      <div class="type-btn active income" id="type-income" onclick="setType('income')">💚 Income</div>
+      <div class="type-btn" id="type-expense" onclick="setType('expense')">🔴 Expense</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Amount (<span class="currency-label">RM</span>)</div>
+      <input type="number" class="form-input amount-input" id="txn-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <div class="form-label">Category</div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Note (optional)</div>
+      <input type="text" class="form-input" id="txn-note" placeholder="What was this for?">
+    </div>
+    <div class="form-group">
+      <div class="form-label">Date</div>
+      <input type="date" class="form-input" id="txn-date">
+    </div>
+    <button class="submit-btn" onclick="addTransaction()">Add Entry</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = {
+  income: [
+    { id:'salary',    name:'Salary',    emoji:'💼' },
+    { id:'freelance', name:'Freelance', emoji:'💻' },
+    { id:'business',  name:'Business',  emoji:'🏪' },
+    { id:'invest',    name:'Invest',    emoji:'📈' },
+    { id:'bonus',     name:'Bonus',     emoji:'🎉' },
+    { id:'rental',    name:'Rental',    emoji:'🏠' },
+    { id:'gift',      name:'Gift',      emoji:'🎁' },
+    { id:'other-in',  name:'Other',     emoji:'💰' },
+  ],
+  expense: [
+    { id:'food',      name:'Food',      emoji:'🍜' },
+    { id:'transport', name:'Transport', emoji:'🚗' },
+    { id:'shopping',  name:'Shopping',  emoji:'🛍️' },
+    { id:'bills',     name:'Bills',     emoji:'📱' },
+    { id:'health',    name:'Health',    emoji:'💊' },
+    { id:'fun',       name:'Fun',       emoji:'🎮' },
+    { id:'edu',       name:'Education', emoji:'📚' },
+    { id:'other-ex',  name:'Other',     emoji:'💸' },
+  ]
+};
+
+let transactions  = JSON.parse(localStorage.getItem('richly_txns') || '[]');
+let currency      = localStorage.getItem('richly_currency') || 'RM';
+let currentType   = 'expense';
+let selectedCat   = null;
+let currentScreen = 'home';
+let selectedMonth = 'all';
+
+// PWA
+try {
+  const manifest = { name:'Richly — Money Tracker', short_name:'Richly', description:'Your premium money tracker.', start_url:'./', display:'standalone', background_color:'#060610', theme_color:'#060610', icons:[{ src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23060610'/><text y='400' x='50' font-size='400'>💎</text></svg>", sizes:'512x512', type:'image/svg+xml' }] };
+  const mBlob = new Blob([JSON.stringify(manifest)], { type:'application/manifest+json' });
+  const mLink = document.createElement('link'); mLink.rel = 'manifest'; mLink.href = URL.createObjectURL(mBlob); document.head.appendChild(mLink);
+} catch(e){}
+if ('serviceWorker' in navigator) {
+  try {
+    const sw = `self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+  } catch(e){}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  document.getElementById('today-date').textContent = now.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('txn-date').value = now.toISOString().split('T')[0];
+  applyCurrency(); renderHome(); renderMonthFilter();
+});
+
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+  currentScreen = name;
+  if (name==='history') { renderMonthFilter(); renderHistory(); }
+  if (name==='stats')   renderStats();
+}
+
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  setType('expense');
+  document.getElementById('txn-amount').value = '';
+  document.getElementById('txn-note').value = '';
+  document.getElementById('txn-date').value = new Date().toISOString().split('T')[0];
+  setTimeout(() => document.getElementById('txn-amount').focus(), 350);
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOnBg(e) { if (e.target.id==='modal-overlay') closeModal(); }
+
+function setType(type) {
+  currentType = type; selectedCat = null;
+  document.getElementById('type-income').className  = 'type-btn' + (type==='income'  ? ' active income'  : '');
+  document.getElementById('type-expense').className = 'type-btn' + (type==='expense' ? ' active expense' : '');
+  renderCatGrid();
+}
+function renderCatGrid() {
+  document.getElementById('cat-grid').innerHTML = CATEGORIES[currentType].map(c =>
+    `<div class="cat-btn ${selectedCat===c.id?'selected':''}" onclick="selectCat('${c.id}')">
+       <div class="cat-emoji">${c.emoji}</div><div class="cat-name">${c.name}</div>
+     </div>`).join('');
+}
+function selectCat(id) { selectedCat = id; renderCatGrid(); }
+
+function addTransaction() {
+  const amount = parseFloat(document.getElementById('txn-amount').value);
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  if (!selectedCat) { alert('Please pick a category.'); return; }
+  const cat  = CATEGORIES[currentType].find(c => c.id === selectedCat);
+  const note = document.getElementById('txn-note').value.trim() || cat.name;
+  transactions.unshift({ id:Date.now(), type:currentType, amount, category:cat.id, categoryName:cat.name, categoryEmoji:cat.emoji, note, date:document.getElementById('txn-date').value });
+  save(); closeModal(); renderHome(); renderMonthFilter();
+  if (currentScreen==='history') renderHistory();
+  if (currentScreen==='stats')   renderStats();
+}
+function deleteTxn(id) {
+  if (!confirm('Delete this entry?')) return;
+  transactions = transactions.filter(t => t.id !== id);
+  save(); renderHome(); renderMonthFilter();
+  if (currentScreen==='history') renderHistory();
+  if (currentScreen==='stats')   renderStats();
+}
+function save() { localStorage.setItem('richly_txns', JSON.stringify(transactions)); }
+
+function fmt(n) { return n.toLocaleString('en-MY', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function calcTotals(txns) {
+  const income  = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  return { income, expense, balance: income - expense };
+}
+function txnHTML(t) {
+  return `<div class="txn-item">
+    <div class="txn-icon ${t.type}">${t.categoryEmoji}</div>
+    <div class="txn-info">
+      <div class="txn-name">${esc(t.note)}</div>
+      <div class="txn-meta">${t.categoryName} · ${fmtDate(t.date)}</div>
+    </div>
+    <div class="txn-right">
+      <div class="txn-amount ${t.type}">${t.type==='income'?'+':'-'}${currency}&nbsp;${fmt(t.amount)}</div>
+      <span class="txn-del" onclick="deleteTxn(${t.id})">🗑️</span>
+    </div>
+  </div>`;
+}
+function fmtDate(d) { return new Date(d+'T00:00:00').toLocaleDateString('en-MY',{day:'numeric',month:'short'}); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderHome() {
+  const now = new Date();
+  const thisMonth = now.toISOString().slice(0,7);
+  const month = calcTotals(transactions.filter(t=>t.date.startsWith(thisMonth)));
+  const all   = calcTotals(transactions);
+  document.getElementById('total-balance').textContent  = fmt(all.balance);
+  document.getElementById('total-income').textContent   = fmt(month.income);
+  document.getElementById('total-expense').textContent  = fmt(month.expense);
+  document.getElementById('balance-period').textContent = now.toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+  const recent = transactions.slice(0,6);
+  document.getElementById('home-txn-list').innerHTML = recent.length
+    ? recent.map(txnHTML).join('')
+    : `<div class="empty-state"><div class="empty-icon">💎</div><div class="empty-text">No entries yet.<br>Tap <b>+</b> to track your first transaction.</div></div>`;
+}
+function renderMonthFilter() {
+  const months = [...new Set(transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  document.getElementById('month-filter').innerHTML =
+    `<div class="month-chip ${selectedMonth==='all'?'active':''}" onclick="filterMonth('all')">All Time</div>` +
+    months.map(m => {
+      const label = new Date(m+'-01').toLocaleDateString('en-MY',{month:'short',year:'numeric'});
+      return `<div class="month-chip ${selectedMonth===m?'active':''}" onclick="filterMonth('${m}')">${label}</div>`;
+    }).join('');
+}
+function filterMonth(m) { selectedMonth=m; renderMonthFilter(); renderHistory(); }
+function renderHistory() {
+  const filtered = selectedMonth==='all' ? transactions : transactions.filter(t=>t.date.startsWith(selectedMonth));
+  document.getElementById('history-count').textContent = `${filtered.length} entr${filtered.length!==1?'ies':'y'}`;
+  document.getElementById('history-txn-list').innerHTML = filtered.length
+    ? filtered.map(txnHTML).join('')
+    : `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No entries for this period.</div></div>`;
+}
+function renderStats() {
+  const now = new Date();
+  const inc = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const savingsRate = inc > 0 ? Math.round((inc-exp)/inc*100) : 0;
+  const past30 = new Date(now-30*86400000).toISOString().split('T')[0];
+  const exp30  = transactions.filter(t=>t.type==='expense'&&t.date>=past30).reduce((s,t)=>s+t.amount,0);
+  document.getElementById('stats-txn-count').textContent    = transactions.length;
+  document.getElementById('stats-avg-expense').textContent  = fmt(exp30/30);
+  document.getElementById('stats-savings-rate').textContent = savingsRate+'%';
+
+  const months = [];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push(d.toISOString().slice(0,7)); }
+  const mData = months.map(m => {
+    const {income,expense} = calcTotals(transactions.filter(t=>t.date.startsWith(m)));
+    return { label:new Date(m+'-01').toLocaleDateString('en-MY',{month:'short'}), income, expense };
+  });
+  const maxM = Math.max(...mData.flatMap(d=>[d.income,d.expense]),1);
+  document.getElementById('monthly-chart').innerHTML = mData.map(d=>`
+    <div>
+      <div class="bar-row">
+        <div class="bar-label">${d.label}</div>
+        <div class="bar-track"><div class="bar-fill income" style="width:${(d.income/maxM*100).toFixed(1)}%"></div></div>
+        <div class="bar-value" style="color:var(--income)">+${fmt(d.income)}</div>
+      </div>
+      <div class="bar-row" style="margin-top:5px">
+        <div class="bar-label"></div>
+        <div class="bar-track"><div class="bar-fill expense" style="width:${(d.expense/maxM*100).toFixed(1)}%"></div></div>
+        <div class="bar-value" style="color:var(--expense)">-${fmt(d.expense)}</div>
+      </div>
+    </div>`).join('');
+
+  const catMap = {};
+  transactions.filter(t=>t.type==='expense').forEach(t=>{
+    if(!catMap[t.categoryName]) catMap[t.categoryName]={total:0,emoji:t.categoryEmoji};
+    catMap[t.categoryName].total+=t.amount;
+  });
+  const sorted = Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  const maxC = sorted.length?sorted[0][1].total:1;
+  document.getElementById('category-chart').innerHTML = sorted.length
+    ? sorted.map(([name,{total,emoji}])=>`
+        <div class="bar-row">
+          <div class="bar-label">${emoji} ${name}</div>
+          <div class="bar-track"><div class="bar-fill expense" style="width:${(total/maxC*100).toFixed(1)}%"></div></div>
+          <div class="bar-value" style="color:var(--expense)">${fmt(total)}</div>
+        </div>`).join('')
+    : '<div style="color:var(--text-dim);font-size:13px;text-align:center;padding:12px">No expense data yet</div>';
+}
+
+function setCurrency(val) { currency=val; localStorage.setItem('richly_currency',val); applyCurrency(); renderHome(); }
+function applyCurrency() {
+  document.getElementById('currency-symbol').textContent = currency;
+  document.getElementById('currency-select').value = currency;
+  document.querySelectorAll('.currency-label').forEach(el=>el.textContent=currency);
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(transactions,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='richly-data.json'; a.click();
+}
+function clearAllData() {
+  if (confirm('⚠️ Delete ALL entries? This cannot be undone.')) {
+    if (confirm('Last chance — are you sure?')) {
+      transactions=[]; save(); renderHome(); renderMonthFilter(); renderStats();
+      alert('All data cleared.');
+    }
+  }
+}
+function showInstallTip() {
+  alert('📱 Install Richly:\n\n🍎 iPhone/iPad:\nSafari → Share button → "Add to Home Screen"\n\n🤖 Android:\nChrome → 3-dot menu → "Add to Home Screen"\n\nThen open from your home screen — it works like a real app! 🚀');
+}
+</script>
+</body>
+</html>
