@@ -222,15 +222,24 @@
     .submit-btn { width: 100%; background: var(--gold); color: #060610; border: none; border-radius: 16px; padding: 16px; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 18px; transition: all 0.15s; letter-spacing: 0.3px; }
     .submit-btn:active { transform: scale(0.97); }
 
-    /* INSIGHTS TABS */
-    .insights-tabs { display: flex; gap: 8px; padding: 0 20px 14px; overflow-x: auto; scrollbar-width: none; }
-    .insights-tabs::-webkit-scrollbar { display: none; }
-    .ins-tab { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 8px 16px; font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--text-dim); white-space: nowrap; display: flex; align-items: center; gap: 5px; }
-    .ins-tab.active { background: var(--gold-dim); border-color: #e8b84b44; color: var(--gold); }
-    .ins-tab.pro-locked { opacity: 0.75; }
-    .pro-pill { background: var(--pro-dim); border: 1px solid #a78bfa33; color: var(--pro); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; letter-spacing: 0.5px; }
-    .pro-lock-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-mid); cursor: pointer; border-radius: 14px; background: #06061090; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-    .pro-lock-overlay:active { background: #060610b0; }
+    /* INSIGHTS FILTER */
+    .ins-filter-wrap { padding: 0 20px 16px; }
+    .ins-mode-toggle { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface2); border-radius: 14px; padding: 4px; margin-bottom: 14px; }
+    .ins-mode-btn { padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: var(--text-dim); }
+    .ins-mode-btn.active { background: var(--gold-dim); color: var(--gold); border: 1px solid #e8b84b33; }
+    .ins-month-nav { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; }
+    .ins-month-arrow { width: 36px; height: 36px; background: var(--surface2); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all 0.15s; color: var(--text-mid); border: 1px solid var(--border); }
+    .ins-month-arrow:active { background: var(--gold-dim); color: var(--gold); transform: scale(0.92); }
+    .ins-month-label { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--text); text-align: center; }
+    .ins-month-year { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 2px; letter-spacing: 1px; }
+    .ins-pro-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .ins-pro-card { background: var(--surface); border: 1px solid #a78bfa22; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+    .ins-pro-card:active { background: var(--pro-dim); }
+    .ins-pro-card-icon { font-size: 20px; }
+    .ins-pro-card-text { flex: 1; }
+    .ins-pro-card-label { font-size: 12px; font-weight: 600; color: var(--text-mid); }
+    .ins-pro-card-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+    .pro-pill { background: var(--pro-dim); border: 1px solid #a78bfa33; color: var(--pro); font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; letter-spacing: 0.5px; margin-top: 4px; display: inline-block; }
 
     /* HISTORY */
     .month-filter { display: flex; gap: 8px; padding: 0 20px 16px; overflow-x: auto; scrollbar-width: none; }
@@ -388,45 +397,42 @@
       </div>
     </div>
 
-    <!-- FILTER MODE TABS -->
-    <div class="insights-tabs">
-      <div class="ins-tab active" id="itab-all"        onclick="setInsightMode('all')">All</div>
-      <div class="ins-tab"        id="itab-month"      onclick="setInsightMode('month')">Month</div>
-      <div class="ins-tab pro-locked" id="itab-date"        onclick="insightProGate()">📅 Date <span class="pro-pill">PRO</span></div>
-      <div class="ins-tab pro-locked" id="itab-daterange"   onclick="insightProGate()">📅 Range <span class="pro-pill">PRO</span></div>
-      <div class="ins-tab pro-locked" id="itab-monthrange"  onclick="insightProGate()">🗓 M-Range <span class="pro-pill">PRO</span></div>
-    </div>
-
-    <!-- FREE: MONTH PICKER -->
-    <div id="insight-month-picker" style="display:none; padding: 0 20px 14px;">
-      <input type="month" class="form-input" id="insight-month-input"
-        oninput="applyInsightMonth(this.value)"
-        style="font-size:14px; padding:11px 14px;">
-    </div>
-
-    <!-- PRO LOCKED: SINGLE DATE -->
-    <div id="insight-date-picker" style="display:none; padding: 0 20px 14px; position:relative;">
-      <input type="date" class="form-input" disabled
-        style="font-size:14px; padding:11px 14px; opacity:0.35; pointer-events:none;">
-      <div class="pro-lock-overlay" onclick="insightProGate()">🔒 Pro Feature — <span style="color:var(--pro)">Unlock</span></div>
-    </div>
-
-    <!-- PRO LOCKED: DATE RANGE -->
-    <div id="insight-daterange-picker" style="display:none; padding: 0 20px 14px; position:relative;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; opacity:0.35; pointer-events:none;">
-        <input type="date" class="form-input" disabled style="font-size:13px; padding:10px 12px;">
-        <input type="date" class="form-input" disabled style="font-size:13px; padding:10px 12px;">
+    <!-- INSIGHT FILTERS -->
+    <div class="ins-filter-wrap">
+      <!-- All / Month toggle -->
+      <div class="ins-mode-toggle">
+        <div class="ins-mode-btn active" id="itab-all"   onclick="setInsightMode('all')">📊 All Time</div>
+        <div class="ins-mode-btn"        id="itab-month" onclick="setInsightMode('month')">📅 By Month</div>
       </div>
-      <div class="pro-lock-overlay" onclick="insightProGate()">🔒 Pro Feature — <span style="color:var(--pro)">Unlock</span></div>
-    </div>
-
-    <!-- PRO LOCKED: MONTH RANGE -->
-    <div id="insight-monthrange-picker" style="display:none; padding: 0 20px 14px; position:relative;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; opacity:0.35; pointer-events:none;">
-        <input type="month" class="form-input" disabled style="font-size:13px; padding:10px 12px;">
-        <input type="month" class="form-input" disabled style="font-size:13px; padding:10px 12px;">
+      <!-- Custom month navigator (free) -->
+      <div id="insight-month-picker" style="display:none;">
+        <div class="ins-month-nav">
+          <div class="ins-month-arrow" onclick="shiftMonth(-1)">‹</div>
+          <div style="text-align:center;">
+            <div class="ins-month-label" id="ins-month-display">May 2026</div>
+          </div>
+          <div class="ins-month-arrow" onclick="shiftMonth(1)">›</div>
+        </div>
       </div>
-      <div class="pro-lock-overlay" onclick="insightProGate()">🔒 Pro Feature — <span style="color:var(--pro)">Unlock</span></div>
+      <!-- Pro-locked cards -->
+      <div class="ins-pro-row" id="insight-pro-cards">
+        <div class="ins-pro-card" onclick="insightProGate()">
+          <div class="ins-pro-card-icon">🗓</div>
+          <div class="ins-pro-card-text">
+            <div class="ins-pro-card-label">Date Range</div>
+            <div class="ins-pro-card-sub">From → To</div>
+            <span class="pro-pill">PRO</span>
+          </div>
+        </div>
+        <div class="ins-pro-card" onclick="insightProGate()">
+          <div class="ins-pro-card-icon">📆</div>
+          <div class="ins-pro-card-text">
+            <div class="ins-pro-card-label">Month Range</div>
+            <div class="ins-pro-card-sub">Jan → Apr</div>
+            <span class="pro-pill">PRO</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="stat-summary">
@@ -777,33 +783,42 @@ function renderHistory() {
 }
 // ========== INSIGHTS MODE ==========
 let insightMode = 'all';
-let insightMonthVal = '';
+let insightDate  = new Date();  // current month pointer
 
 function setInsightMode(mode) {
   insightMode = mode;
-  ['all','month','date','daterange','monthrange'].forEach(m => {
-    const tab = document.getElementById('itab-'+m);
-    if(tab) tab.classList.toggle('active', m===mode);
-  });
-  document.getElementById('insight-month-picker').style.display    = mode==='month'      ? 'block' : 'none';
-  document.getElementById('insight-date-picker').style.display     = mode==='date'       ? 'block' : 'none';
-  document.getElementById('insight-daterange-picker').style.display= mode==='daterange'  ? 'block' : 'none';
-  document.getElementById('insight-monthrange-picker').style.display=mode==='monthrange' ? 'block' : 'none';
-  if(mode==='month' && !insightMonthVal) {
-    const now = new Date();
-    insightMonthVal = now.toISOString().slice(0,7);
-    document.getElementById('insight-month-input').value = insightMonthVal;
-  }
+  document.getElementById('itab-all').classList.toggle('active', mode==='all');
+  document.getElementById('itab-month').classList.toggle('active', mode==='month');
+  document.getElementById('insight-month-picker').style.display = mode==='month' ? 'block' : 'none';
+  updateMonthDisplay();
   renderStats();
 }
 
-function applyInsightMonth(val) { insightMonthVal = val; renderStats(); }
+function updateMonthDisplay() {
+  const label = insightDate.toLocaleDateString('en-MY', {month:'long', year:'numeric'});
+  const el = document.getElementById('ins-month-display');
+  if(el) el.textContent = label;
+}
+
+function shiftMonth(dir) {
+  insightDate = new Date(insightDate.getFullYear(), insightDate.getMonth() + dir, 1);
+  // Don't allow future months
+  const now = new Date();
+  if(insightDate > new Date(now.getFullYear(), now.getMonth(), 1))
+    insightDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  updateMonthDisplay();
+  renderStats();
+}
 
 function insightProGate() { switchScreen('pro'); }
 
+function getInsightMonthVal() {
+  return insightDate.toISOString().slice(0,7);
+}
+
 function getInsightTxns() {
-  if(insightMode==='month' && insightMonthVal)
-    return transactions.filter(t=>t.date.startsWith(insightMonthVal));
+  if(insightMode==='month')
+    return transactions.filter(t=>t.date.startsWith(getInsightMonthVal()));
   return transactions;
 }
 
@@ -813,8 +828,8 @@ function renderStats() {
 
   // label
   let label = 'All time';
-  if(insightMode==='month' && insightMonthVal)
-    label = new Date(insightMonthVal+'-01').toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+  if(insightMode==='month')
+    label = new Date(getInsightMonthVal()+'-01').toLocaleDateString('en-MY',{month:'long',year:'numeric'});
   document.getElementById('insights-range-label').textContent = label;
 
   const inc = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
@@ -827,9 +842,9 @@ function renderStats() {
   document.getElementById('stats-savings-rate').textContent = savingsRate+'%';
 
   // ---- CHART: month mode = week-by-week breakdown, all mode = 6-month overview ----
-  if (insightMode === 'month' && insightMonthVal) {
+  if (insightMode === 'month') {
     // Break selected month into 4 weekly buckets
-    const [yr, mo] = insightMonthVal.split('-').map(Number);
+    const [yr, mo] = getInsightMonthVal().split('-').map(Number);
     const daysInMonth = new Date(yr, mo, 0).getDate();
     const weeks = [
       { label:'Wk 1', from:1,  to:7 },
@@ -839,14 +854,14 @@ function renderStats() {
     ];
     const wData = weeks.map(w => {
       const pad = n => String(n).padStart(2,'0');
-      const fromStr = `${insightMonthVal}-${pad(w.from)}`;
-      const toStr   = `${insightMonthVal}-${pad(w.to)}`;
+      const fromStr = `${getInsightMonthVal()}-${pad(w.from)}`;
+      const toStr   = `${getInsightMonthVal()}-${pad(w.to)}`;
       const wTxns = txns.filter(t => t.date >= fromStr && t.date <= toStr);
       const {income, expense} = calcTotals(wTxns);
       return { label: w.label, income, expense };
     });
     const maxW = Math.max(...wData.flatMap(d=>[d.income,d.expense]),1);
-    const mName = new Date(insightMonthVal+'-01').toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+    const mName = new Date(getInsightMonthVal()+'-01').toLocaleDateString('en-MY',{month:'long',year:'numeric'});
     document.getElementById('monthly-chart-title').textContent = 'Weekly Breakdown — ' + mName;
     document.getElementById('monthly-chart').innerHTML = wData.map(d=>`
       <div>
